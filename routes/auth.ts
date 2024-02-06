@@ -5,18 +5,22 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 import { authenticateToken } from "../controllers/auth";
+import { User } from "../definitions";
+import { getGroupIdByName } from "../utils/groups";
 const { fetchUsers } = require('../controllers/users');
 const { createUser, findUserByUsername } = require('../utils/users');
 
 router.post("/api/register", async (req: any, res: any) => {
     try {
-        const { username, password, email, name, lastname } = req.body;
-        if (!(email && password && username && name && lastname)) {
+        const { username, password, email, name, last_name }: User = req.body;
+        if (!(email && password && username && name && last_name)) {
             res.status(400).send("All input is required");
         }
         const hashed_password = await bcrypt.hash(password, 10);
 
-        const user = await createUser({ username, password: hashed_password, email, name, lastname });
+        const group_id = await getGroupIdByName("user");
+
+        const user = await createUser({ username, password: hashed_password, email, name, last_name, group_id });
 
         res.status(201).send("User created.");
     } catch (error) {
@@ -25,31 +29,36 @@ router.post("/api/register", async (req: any, res: any) => {
     }
 });
 
-router.post("/api/login", fetchUsers, async (req, res) => {
-    const { username, password } = req.body;
-    const { users } = res.locals;
-
-    const user = users.find(user => user.username === username);
-
-    if (user) {
-        const validPassword = await bcrypt.compare(password, user.password.toString());
-
-        if (validPassword) {
-            const accessToken = jwt.sign({ username: user.username }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
-
-            res.cookie("token", accessToken, {
-                httpOnly: true,
-                secure: true,
-                sameSite: "strict",
-                maxAge: 3600000
-            });
-
-            res.status(200).send("Login successful");
+router.post("/api/login", fetchUsers, async (req: any, res: any) => {
+    try {
+        const { username, password }: User = req.body;
+        const { users } = res.locals;
+    
+        const user: User = users.find((user: User) => user.username === username);
+    
+        if (user) {
+            const validPassword = await bcrypt.compare(password, user.password.toString());
+    
+            if (validPassword) {
+                const accessToken = jwt.sign({ username: user.username }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+    
+                res.cookie("token", accessToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "strict",
+                    maxAge: 3600000
+                });
+    
+                res.status(200).send("Login successful");
+            } else {
+                res.status(400).send('Invalid username or password');
+            }
         } else {
             res.status(400).send('Invalid username or password');
         }
-    } else {
-        res.status(400).send('Invalid username or password');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Server error")
     }
 });
 

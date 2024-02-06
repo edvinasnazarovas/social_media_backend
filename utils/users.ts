@@ -1,11 +1,13 @@
 import { db } from "../db"
+import { User } from "../definitions";
+const jwt = require('jsonwebtoken');
 
-function createUser(user) {
+export function createUser(user: User) {
     return new Promise((resolve, reject) => {
         try {
-            const sql = `INSERT INTO users (username, password, email, name, lastname) VALUES (?, ?, ?, ?, ?)`;
-            const values = [user.username, user.password, user.email, user.name, user.lastname];
-            db.query(sql, values, (err, res) => {
+            const sql = `INSERT INTO user (username, password, email, name, last_name, group_id) VALUES (?, ?, ?, ?, ?, ?)`;
+            const values = [user.username, user.password, user.email, user.name, user.last_name, user.group_id];
+            db.query(sql, values, (err: Error, res: any) => {
                 if (err) {
                     reject(err);
                 }
@@ -17,7 +19,7 @@ function createUser(user) {
     });
 }
 
-function findUserByUsername(username) {
+export function findUserByUsername(username) {
     return new Promise((resolve, reject) => {
         try {
             const sql = `SELECT * FROM users WHERE username = ?`;
@@ -31,7 +33,48 @@ function findUserByUsername(username) {
             reject(error);
         }
     });
-
 }
 
-module.exports = { createUser, findUserByUsername }
+export function getCurrentUser(token: string): Promise<User> {
+    return new Promise((resolve, reject) => {
+        try {
+            console.log("TOKEN ", token);
+            if (!token) {
+                reject("No token");
+            }
+
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err: any, user: any) => {
+                if (err) {
+                    console.error(err);
+                    reject(err);
+                }
+                resolve(user);
+            });
+        } catch (error) {
+            console.error(error);
+            reject(error);
+        }
+    })
+}
+
+export function getUserId(username: string): Promise<number> {
+    return new Promise((resolve, reject) => {
+        try {
+            const sql = "SELECT id FROM user WHERE username = ?";
+            db.query(sql, username, (err: any, rows: any) => {
+                if (err) {
+                    console.error(err);
+                    reject(err);
+                }
+                if (rows) {
+                    resolve(rows[0].id);
+                } else {
+                    reject("No user found.");
+                }
+            });
+        } catch (error) {
+            console.error(error);
+            reject(error);
+        }
+    });
+}
