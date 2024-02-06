@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+      "allowJs": true,
+      "outDir": "./dist" // Your output directory
+    },
+    "include": ["**/*.ts", "**/*.js"], // Include TypeScript and JavaScript files
+    "exclude": ["node_modules"]
+  }
