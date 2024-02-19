@@ -6,7 +6,8 @@ export type User = {
     password: string,
     email: string,
     group_id: number,
-    group: "user" | "admin"
+    group: "user" | "admin",
+    icon: string
 };
 
 export type Group = {
@@ -14,8 +15,11 @@ export type Group = {
     name: string
 };
 
-export interface Post {
+export type Post = {
+    id: number,
     description: string,
     user_id: number,
-    media_id: number
+    media_id: number,
+    likes: number,
+    liked: boolean
 }

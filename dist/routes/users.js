@@ -37,86 +37,58 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var auth_1 = require("../controllers/auth");
-var media_1 = require("../utils/media");
-var posts_1 = require("../utils/posts");
 var users_1 = require("../utils/users");
+var express = require('express');
+var router = express.Router();
+var db = require('../db');
+var jwt = require('jsonwebtoken');
+var bcrypt = require('bcryptjs');
 var multer = require("multer");
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/'); // Make sure this directory exists
+        cb(null, 'public/images'); // Make sure this directory exists
     },
     filename: function (req, file, cb) {
         // You can use the original name or add a timestamp for uniqueness
         cb(null, Date.now() + '-' + file.originalname);
-    }
+    },
+    fileFilter: function (req, file, cb) {
+        // Check the file's mimetype to be an image
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true); // Accept file
+        }
+        else {
+            cb(new Error('Only image files are allowed!'), false); // Reject file
+        }
+    },
 });
 var upload = multer({ storage: storage });
-var express = require("express");
-var router = express.Router();
-router.get("/api/posts", auth_1.authenticateToken, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var posts;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, (0, posts_1.fetchPosts)()];
-            case 1:
-                posts = _a.sent();
-                console.log("POSTS ", posts);
-                return [2 /*return*/, res.status(200).json(posts)];
-        }
-    });
-}); });
-router.post("/api/posts", auth_1.authenticateToken, upload.single('file'), function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var token, user, user_id, filePath, fileName, fileSize, media_id, post_obj, post;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+router.post("/api/users/icon", auth_1.authenticateToken, upload.single('file'), function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var filePath, user, _a, old_icon_path, icon_upload;
+    var _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                if (!(req.body.description && req.file)) {
-                    return [2 /*return*/, res.status(400).send("Please provide all values.")];
-                }
-                token = req.cookies.token;
-                if (!token) {
-                    return [2 /*return*/, res.status(401).send("No token")];
-                }
-                return [4 /*yield*/, (0, users_1.getCurrentUser)(token)];
+                filePath = (_b = req === null || req === void 0 ? void 0 : req.file) === null || _b === void 0 ? void 0 : _b.path;
+                return [4 /*yield*/, (0, users_1.getCurrentUser)(req.cookies.token)];
             case 1:
-                user = _a.sent();
-                return [4 /*yield*/, (0, users_1.getUserId)(user.username)];
-            case 2:
-                user_id = _a.sent();
-                filePath = req.file.path;
-                fileName = req.file.filename;
-                fileSize = req.file.size;
-                return [4 /*yield*/, (0, media_1.createMedia)(filePath)];
-            case 3:
-                media_id = _a.sent();
-                post_obj = { id: null, description: req.body.description, user_id: user_id, media_id: media_id };
-                return [4 /*yield*/, (0, posts_1.createPost)(post_obj)];
-            case 4:
-                post = _a.sent();
-                return [2 /*return*/, res.status(200).send(JSON.stringify({ user_id: user_id, filePath: filePath, fileName: fileName, fileSize: fileSize }))];
-        }
-    });
-}); });
-router.delete("/api/posts/:id", auth_1.authenticateToken, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var user, _a, post;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0: return [4 /*yield*/, (0, users_1.getCurrentUser)(req.cookies.token)];
-            case 1:
-                user = _b.sent();
+                user = _c.sent();
                 _a = user;
                 return [4 /*yield*/, (0, users_1.getUserId)(user.username)];
             case 2:
-                _a.id = _b.sent();
-                return [4 /*yield*/, (0, posts_1.fetchPost)(req.params.id)];
+                _a.id = _c.sent();
+                return [4 /*yield*/, (0, users_1.fetchUserIconPath)(user.id)];
             case 3:
-                post = _b.sent();
-                if (!(post.user_id === user.id)) return [3 /*break*/, 5];
-                return [4 /*yield*/, (0, posts_1.deletePost)(post.id)];
+                old_icon_path = _c.sent();
+                if (!(old_icon_path !== "" || old_icon_path !== null)) return [3 /*break*/, 5];
+                return [4 /*yield*/, (0, users_1.deleteFile)(old_icon_path)];
             case 4:
-                _b.sent();
-                return [2 /*return*/, res.status(200).send("Post deleted.")];
-            case 5: return [2 /*return*/, res.status(401).send("Post does not belong to user.")];
+                _c.sent();
+                _c.label = 5;
+            case 5: return [4 /*yield*/, (0, users_1.uploadUserIcon)(user.id, filePath)];
+            case 6:
+                icon_upload = _c.sent();
+                return [2 /*return*/, res.status(200).json(filePath)];
         }
     });
 }); });

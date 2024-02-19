@@ -42,8 +42,11 @@ var db = require('../db');
 var jwt = require('jsonwebtoken');
 var bcrypt = require('bcryptjs');
 var crypto = require('crypto');
+var fs = require('fs').promises;
+var path = require('path');
 var auth_1 = require("../controllers/auth");
 var groups_1 = require("../utils/groups");
+var users_1 = require("../utils/users");
 var fetchUsers = require('../controllers/users').fetchUsers;
 var _a = require('../utils/users'), createUser = _a.createUser, findUserByUsername = _a.findUserByUsername;
 router.post("/api/register", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
@@ -54,7 +57,7 @@ router.post("/api/register", function (req, res) { return __awaiter(void 0, void
                 _b.trys.push([0, 4, , 5]);
                 _a = req.body, username = _a.username, password = _a.password, email = _a.email, name_1 = _a.name, last_name = _a.last_name;
                 if (!(email && password && username && name_1 && last_name)) {
-                    res.status(400).send("All input is required");
+                    return [2 /*return*/, res.status(400).send("All input is required")];
                 }
                 return [4 /*yield*/, bcrypt.hash(password, 10)];
             case 1:
@@ -65,13 +68,11 @@ router.post("/api/register", function (req, res) { return __awaiter(void 0, void
                 return [4 /*yield*/, createUser({ username: username, password: hashed_password, email: email, name: name_1, last_name: last_name, group_id: group_id })];
             case 3:
                 user = _b.sent();
-                res.status(201).send("User created.");
-                return [3 /*break*/, 5];
+                return [2 /*return*/, res.status(201).send("User created.")];
             case 4:
                 error_1 = _b.sent();
                 console.error(error_1);
-                res.status(500).send("Error registering user");
-                return [3 /*break*/, 5];
+                return [2 /*return*/, res.status(500).send("Error registering user")];
             case 5: return [2 /*return*/];
         }
     });
@@ -145,6 +146,28 @@ router.get("/api/privileges", auth_1.authenticateToken, function (req, res) { re
                 res.status(401).json({ message: "Invalid token" });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
+        }
+    });
+}); });
+router.get("/api/auth", auth_1.authenticateToken, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var user, _a, user_icon_path;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0: return [4 /*yield*/, (0, users_1.getCurrentUser)(req.cookies.token)];
+            case 1:
+                user = _b.sent();
+                if (!user) return [3 /*break*/, 4];
+                // export icon fetching to seperate function
+                _a = user;
+                return [4 /*yield*/, (0, users_1.getUserId)(user.username)];
+            case 2:
+                // export icon fetching to seperate function
+                _a.id = _b.sent();
+                return [4 /*yield*/, (0, users_1.fetchUserIconPath)(user.id)];
+            case 3:
+                user_icon_path = _b.sent();
+                return [2 /*return*/, res.status(200).json(user)];
+            case 4: return [2 /*return*/, res.status(401).send("User not logged in.")];
         }
     });
 }); });

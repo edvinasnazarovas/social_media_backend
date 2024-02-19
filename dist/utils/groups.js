@@ -40,56 +40,56 @@ exports.getGroupIdByName = exports.getGroupNameById = void 0;
 var db_1 = require("../db");
 function getGroupNameById(group_id) {
     return __awaiter(this, void 0, void 0, function () {
+        var sql, rows, error_1;
         return __generator(this, function (_a) {
-            return [2 /*return*/, new Promise(function (resolve, reject) {
-                    try {
-                        var sql = "SELECT name FROM group WHERE id = ?";
-                        db_1.db.query(sql, group_id, function (err, rows) {
-                            if (err) {
-                                console.error(err);
-                                reject(err);
-                            }
-                            if (rows) {
-                                resolve(rows[0].id);
-                            }
-                            else {
-                                throw new Error("Group not found.");
-                            }
-                        });
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    sql = "SELECT name FROM group WHERE id = ?";
+                    return [4 /*yield*/, db_1.db.query(sql, group_id)];
+                case 1:
+                    rows = _a.sent();
+                    if (rows) {
+                        return [2 /*return*/, rows[0].name];
                     }
-                    catch (error) {
-                        console.error(error);
-                        reject(error);
+                    else {
+                        throw new Error("Group not found.");
                     }
-                })];
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_1 = _a.sent();
+                    console.error(error_1);
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
         });
     });
 }
 exports.getGroupNameById = getGroupNameById;
 function getGroupIdByName(group_name) {
     return __awaiter(this, void 0, void 0, function () {
+        var sql, rows, error_2;
         return __generator(this, function (_a) {
-            return [2 /*return*/, new Promise(function (resolve, reject) {
-                    try {
-                        var sql = "SELECT id FROM `group` WHERE name = ?";
-                        db_1.db.query(sql, group_name, function (err, rows) {
-                            if (err) {
-                                console.error(err);
-                                reject(err);
-                            }
-                            if (rows) {
-                                resolve(rows[0].id);
-                            }
-                            else {
-                                reject("Group not found");
-                            }
-                        });
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    sql = "SELECT id FROM `group` WHERE name = ?";
+                    return [4 /*yield*/, db_1.db.query(sql, group_name)];
+                case 1:
+                    rows = _a.sent();
+                    if (rows) {
+                        return [2 /*return*/, rows[0].id];
                     }
-                    catch (error) {
-                        console.error(error);
-                        reject(error);
+                    else {
+                        throw new Error("Group not found.");
                     }
-                })];
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_2 = _a.sent();
+                    console.error(error_2);
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
         });
     });
 }
